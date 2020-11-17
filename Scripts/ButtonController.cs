@@ -15,7 +15,7 @@ public class ButtonController : MonoBehaviour
     public bool ButtonPressed; //нажата кнопка сейчас или нет (хотя ля, можно же клавишу отслеживать...)
     public bool ButtonBlocked;
     private bool CurrNotePressed;
-    private bool CurrSlideAct;
+    private bool CurrNoteAct;
     private bool CurrSlidePressed;
     private float CurrSlideTime;
     void Start()
@@ -46,10 +46,13 @@ public class ButtonController : MonoBehaviour
             ButtonBlocked = true;//то она блокируется то ее отжатия и повторного нажатия
         }//крч не выйдет просто зажать все кнопки и выиграть
         if (note.tag == "Slider") {
+            
             CurrSlideTime = LevelController.LC.SliderTimeDelay;
+            Debug.Log(CurrSlideTime);
             CurrSlidePressed = false;//сброс переменных про слайдерам
-            CurrSlideAct = true;
+            
         }
+        CurrNoteAct = true;
         CurrNotePressed = false;
 
     }
@@ -69,32 +72,39 @@ public class ButtonController : MonoBehaviour
         }
         if (note.tag == "Slider") //блок обработки слайдеров
         {
+            //Debug.Log("72");
             if (!CurrNotePressed)//если слайдер не нажат
             {
+                //Debug.Log("75");
                 CurrSlideTime -= Time.deltaTime; //даем игроку время на нажатие слайдера
                 if (CurrSlideTime <= 0) //если оно истекает - промах
                 {
+                    //Debug.Log("79");
+                    CurrNoteAct = false;
                     LevelController.LC.NoteMissed(note);
-                    CurrSlideAct = false;
+                    
                 }
             }
             else
             {
+                //Debug.Log("86");
                 CurrSlidePressed = true; //когда игрок зажал слайдер - начинаем это отслеживать
             }
             if(CurrSlidePressed && !ButtonPressed) //если слайдер отпущен раньше времени - промах
             {                                      //в будущем нужно дать возможность отпустить слайдер раньше времени, ухудшая показатель точности
-                Debug.Log("here");
-                CurrSlideAct = false;
+                //Debug.Log("91");
+                CurrNoteAct = false;
                 LevelController.LC.NoteMissed(note);
-                
             }
 
         }
         if(note.tag == "Note")//блок обработки нот
         {
+            
             if (CurrNotePressed)
             {
+                //Debug.Log("103");
+                CurrNoteAct = false;
                 LevelController.LC.NotePressed(note);
             }
             
@@ -102,20 +112,22 @@ public class ButtonController : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D note)
     {
-        if(note.tag == "Tile")
+        if(note.tag == "Note" && CurrNoteAct)
         {
             LevelController.LC.NoteMissed(note);
         }
-        if(note.tag == "Slider" && CurrSlideAct == true)
+        if(note.tag == "Slider" && CurrNoteAct)
         {
+            //Debug.Log("117");
             if (CurrSlidePressed)
             {
-                //Debug.Log("here");
+                //Debug.Log("120");
                 //удаление ноты (будет более подробная обработка нажатия)
                 LevelController.LC.NotePressed(note);
             }
             else
             {
+                //Debug.Log("126");
                 //удаление ноты (будет более подробная обработка нажатия)
                 LevelController.LC.NoteMissed(note);
             }

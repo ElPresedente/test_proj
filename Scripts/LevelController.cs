@@ -5,17 +5,21 @@ using UnityEngine;
 public class LevelController : MonoBehaviour
 {
     // Start is called before the first frame update
+    public static LevelController LC; //чтобы мы не создавали сотни копий скрипта
     public float SliderTimeDelay;
-    public float Tempo;
+    public float tempo;
     public KeyCode startButton; // кнопка начала движения
     public KeyCode pauseButton; // кнопка паузы
     private bool Playing;
     public AudioSource Music;
     public float MusicDelay;
-    public static LevelController LC; //чтобы мы не создавали сотни копий скрипта
-    void Start()
+    void Awake()
     {
         LC = this;
+    }
+    void Start()
+    {
+        
 
     }
 
@@ -33,7 +37,10 @@ public class LevelController : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(pauseButton)) Pause();
+        if (Input.GetKeyDown(pauseButton)) 
+        { 
+            Pause();
+        }
     }
     public void NotePressed(Collider2D note)
     {

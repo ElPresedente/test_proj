@@ -14,7 +14,7 @@ public class ArrowHolder : MonoBehaviour
     {
         AH = this;
         playable = false;
-        BPM = LevelController.LC.Tempo / 60f;
+        BPM = LevelController.LC.tempo / 60f; 
     }
 
     // Update is called once per frame
