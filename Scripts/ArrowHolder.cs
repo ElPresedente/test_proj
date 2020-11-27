@@ -14,7 +14,9 @@ public class ArrowHolder : MonoBehaviour
     {
         AH = this;
         playable = false;
-        BPM = LevelController.LC.tempo / 60f; 
+        BPM = LevelController.LC.tempo / 60f;
+        int childNum = transform.childCount;
+        LevelController.LC.SetScoresAmount(childNum);
     }
 
     // Update is called once per frame
@@ -41,5 +43,9 @@ public class ArrowHolder : MonoBehaviour
             playable = true;
             Music.UnPause();
         }
+    }
+    public void Debug(float time)
+    {
+        transform.position -= new Vector3(0f, BPM*time, 0f);
     }
 }

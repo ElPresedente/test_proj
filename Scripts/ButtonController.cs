@@ -8,16 +8,21 @@ public class ButtonController : MonoBehaviour
     private SpriteRenderer theSR;
     //public Sprite defaultImage;
     //public Sprite pressedImage;
+    private enum TileStateWord
+    {
+        NotActive,
+        ButtonBlocked,
+        ButtonUnblocked,
+        TilePressed,
+        SliderPressed,//отдельное состояние под слайдер для его отслеживания
+    }
 
     public KeyCode keyToPress;
     public Color defaultColor = new Color(1f, 1f, 1f);
     public Color pressedColor = new Color(0.7f, 0.7f, 0.7f, 0.7f);
     public bool ButtonPressed; //нажата кнопка сейчас или нет (хотя ля, можно же клавишу отслеживать...)
-    public bool ButtonBlocked;
-    private bool CurrNotePressed;
-    private bool CurrNoteAct;
-    private bool CurrSlidePressed;
     private float CurrSlideTime;
+    private TileStateWord TSW;
     void Start()
     {
         
@@ -43,68 +48,73 @@ public class ButtonController : MonoBehaviour
     {
         if (ButtonPressed)//если во время "входа" плашки кнопка нажата
         {
-            ButtonBlocked = true;//то она блокируется то ее отжатия и повторного нажатия
+            TSW  = TileStateWord.ButtonBlocked;//то она блокируется до ее отжатия и повторного нажатия
         }//крч не выйдет просто зажать все кнопки и выиграть
-        if (note.tag == "Slider") {
+        else
+        {
+            TSW = TileStateWord.ButtonUnblocked;
+        }
+        if (note.gameObject.CompareTag("Slider")) {
             
             CurrSlideTime = LevelController.LC.SliderTimeDelay;
-            Debug.Log(CurrSlideTime);
-            CurrSlidePressed = false;//сброс переменных про слайдерам
+            //Debug.Log(CurrSlideTime);//сброс переменных про слайдерам
             
         }
-        CurrNoteAct = true;
-        CurrNotePressed = false;
+        if (note.gameObject.CompareTag("End"))
+        {
+            LevelController.LC.EndMap();
+        }
+
 
     }
+
     private void OnTriggerStay2D(Collider2D note)
     {
-        if (!ButtonPressed && ButtonBlocked)
+        //Debug.Log(TSW);
+        if (!ButtonPressed && TSW == TileStateWord.ButtonBlocked)
         {
-            ButtonBlocked = false; //снятие блокировки
+            TSW = TileStateWord.ButtonUnblocked; //снятие блокировки
         }
-        if (!ButtonBlocked && ButtonPressed)
+        if (TSW == TileStateWord.ButtonUnblocked && ButtonPressed)//при разблокированной и нажатой кнопке активируем тайл
         {
-            CurrNotePressed = true; //булевое значение, отвечающее за условие "нажатия" любого тайла
+            TSW = TileStateWord.TilePressed; 
         }
-        if (!ButtonPressed)
-        {
-            CurrNotePressed = false;
-        }
-        if (note.tag == "Slider") //блок обработки слайдеров
+        
+        if (note.gameObject.CompareTag("Slider")) //блок обработки слайдеров
         {
             //Debug.Log("72");
-            if (!CurrNotePressed)//если слайдер не нажат
+            if (TSW < TileStateWord.TilePressed)//если слайдер не нажат
             {
                 //Debug.Log("75");
                 CurrSlideTime -= Time.deltaTime; //даем игроку время на нажатие слайдера
                 if (CurrSlideTime <= 0) //если оно истекает - промах
                 {
                     //Debug.Log("79");
-                    CurrNoteAct = false;
+                    TSW = TileStateWord.NotActive;
                     LevelController.LC.NoteMissed(note);
-                    
                 }
             }
             else
             {
                 //Debug.Log("86");
-                CurrSlidePressed = true; //когда игрок зажал слайдер - начинаем это отслеживать
-            }
-            if(CurrSlidePressed && !ButtonPressed) //если слайдер отпущен раньше времени - промах
+                TSW = TileStateWord.SliderPressed;// когда игрок зажал слайдер - начинаем это отслеживать
+                
+            };
+            if(TSW == TileStateWord.SliderPressed && !ButtonPressed) //если слайдер отпущен раньше времени - промах
             {                                      //в будущем нужно дать возможность отпустить слайдер раньше времени, ухудшая показатель точности
                 //Debug.Log("91");
-                CurrNoteAct = false;
-                LevelController.LC.NoteMissed(note);
+                TSW = TileStateWord.NotActive;
+                LevelController.LC.SliderUnpressed(note);
             }
 
         }
-        if(note.tag == "Note")//блок обработки нот
+        if(note.gameObject.CompareTag("Note"))//блок обработки нот
         {
             
-            if (CurrNotePressed)
+            if (TSW == TileStateWord.TilePressed)
             {
                 //Debug.Log("103");
-                CurrNoteAct = false;
+                TSW = TileStateWord.NotActive;
                 LevelController.LC.NotePressed(note);
             }
             
@@ -112,14 +122,14 @@ public class ButtonController : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D note)
     {
-        if(note.tag == "Note" && CurrNoteAct)
+        if(note.gameObject.CompareTag("Note") && TSW > 0)
         {
             LevelController.LC.NoteMissed(note);
         }
-        if(note.tag == "Slider" && CurrNoteAct)
+        if(note.gameObject.CompareTag("Slider") && TSW > 0)
         {
             //Debug.Log("117");
-            if (CurrSlidePressed)
+            if (TSW == TileStateWord.SliderPressed)
             {
                 //Debug.Log("120");
                 //удаление ноты (будет более подробная обработка нажатия)
