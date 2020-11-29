@@ -20,10 +20,10 @@ public class LevelController : MonoBehaviour
     public Text MaxCombotxt;
     public Text CurrentScoretxt;
     //счетчики очков
-    private int Perfect = 0;
-    private int Good = 0;
-    private int Normal = 0;
-    private int Missed = 0;
+    private int PerfectCounter = 0;
+    private int GoodCounter = 0;
+    private int NormalCounter = 0;
+    private int MissedCounter = 0;
     //количество очков за категорию
     private double PerfectScore = 0;
     private double GoodScore = 0;
@@ -31,17 +31,17 @@ public class LevelController : MonoBehaviour
 
     private int currentCombo;
     private int maxCombo;
-    private double currentScore = 0;
+    public double currentScore = 0;
 
     private int tilesNumber;
+    private Transform StarHolder;
     void Awake()
     {
         LC = this;
     }
-    void Start()
+    private void Start()
     {
-        
-
+        StarHolder = transform.Find("StarHolder");
     }
     public void SetScoresAmount(int num)
     {
@@ -75,8 +75,6 @@ public class LevelController : MonoBehaviour
                 {
                     Music.PlayDelayed(MusicDelay);
                 }
-                
-
             }
         }
 
@@ -150,37 +148,40 @@ public class LevelController : MonoBehaviour
             Debug.Log("fail " + note.tag + " " + yRange);
         }
         note.gameObject.SetActive(false);
-        Missed++;
+        MissedCounter++;
         currentCombo = 0;
         DrawCombo();
     }
     public void Pause()
     {
-        ArrowHolder.AH.pauseChange(Music);
+        //ArrowHolder.AH.pauseChange(Music);
     }
     private void NotePerfect()
     {
         Debug.Log("perfect");
-        Perfect++;
+        PerfectCounter++;
         currentScore += PerfectScore;
         DrawScore();
     }
     private void NoteGood() {
         Debug.Log("good");
-        Good++;
+        GoodCounter++;
         currentScore += GoodScore;
         DrawScore();
     }
     private void NoteNormal()
     {
         Debug.Log("normal");
-        Normal++;
+        NormalCounter++;
         currentScore += NormalScore;
         DrawScore();
     }
     public void EndMap()
     {
-
+        Debug.Log("Perfect: "+ PerfectCounter +"\nGood: " + GoodCounter + "\nNormal: " + NormalCounter + "\nMissed: " + MissedCounter);
+        DontDestroyOnLoad(gameObject);
+        Loader.Load(Loader.Scene.ResultScene);
+        Music.Stop();
     }
     private void DrawCombo()
     {
@@ -193,7 +194,43 @@ public class LevelController : MonoBehaviour
     }
     private void DrawScore()
     {
-        Debug.Log(currentScore);
-        CurrentScoretxt.text = "Current score: " + (int)Math.Ceiling(currentScore);
+        //Debug.Log(currentScore);
+        int currentscore = (int)Math.Ceiling(currentScore);
+        CurrentScoretxt.text = "Score: " + currentscore;
+        ActivateStar(StarHolder, currentscore);
+    }
+    public int[] GetScores()
+    {   //передаем значения, полученные в ходе игры
+        int[] scoresArr = new int[5] { PerfectCounter, GoodCounter, NormalCounter, MissedCounter, (int)currentScore};
+        gameObject.SetActive(false);
+        return scoresArr;
+    }
+    private void ActivateStar(Transform StarHolder, int totalScore)
+    {
+        if (totalScore > 350000)
+        {
+            StarHolder.GetChild(0)
+                      .GetComponent<SpriteRenderer>().color = new Color(1f, 0.84f, 0f);
+        }
+        if (totalScore > 500000)
+        {
+            StarHolder.GetChild(1)
+                      .GetComponent<SpriteRenderer>().color = new Color(1f, 0.84f, 0f);
+        }
+        if (totalScore > 700000)
+        {
+            StarHolder.GetChild(2)
+                      .GetComponent<SpriteRenderer>().color = new Color(1f, 0.84f, 0f);
+        }
+        if (totalScore > 850000)
+        {
+            StarHolder.GetChild(3)
+                      .GetComponent<SpriteRenderer>().color = new Color(1f, 0.84f, 0f);
+        }
+        if (totalScore > 910000)
+        {
+            StarHolder.GetChild(4)
+                      .GetComponent<SpriteRenderer>().color = new Color(1f, 0.84f, 0f);
+        }
     }
 }
